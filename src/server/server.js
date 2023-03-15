@@ -1,28 +1,22 @@
-const express = require("express");
-const multer = require("multer");
+// Node.js server that handles form submission
+const express = require('express');
+const bodyParser = require('body-parser');
+
+const cors = require('cors');
 
 const app = express();
+app.use(cors(bodyParser.json()));
 
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, "uploads/"); // save files to the uploads directory
-  },
-  filename: function (req, file, cb) {
-    cb(null, file.originalname); // use the original file name
-  },
+app.post('/api/user', (req, res) => {
+  const { name, surname, email } = req.body;
+  // process the form data here
+  // ...
+  // send the response back to the client
+  console.log('Got the message');
+  res.json({ message: 'Form submitted successfully!' });
+  console.log('Got the message');
 });
 
-const upload = multer({ storage });
-
-app.post("/submit-form", upload.single("file"), (req, res) => {
-  const formData = req.body;
-  const fileData = req.file;
-  console.log(formData); // display the submitted form data
-  console.log(fileData); // display the uploaded file data
-  // process the file here, e.g. read data from the file and save to a database
-  res.send("Form submitted successfully!");
-});
-
-app.listen(3001, () => {
-  console.log("Server listening on port 3001");
+app.listen(4000, () => {
+  console.log('Server started on port 4000');
 });

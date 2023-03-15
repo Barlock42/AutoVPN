@@ -1,6 +1,5 @@
-import logo from './logo.svg';
 import './App.css';
-import SignupForm from './SignupForm';
+import SignupForm from './SignupForm.tsx';
 
 function App() {
   return (
