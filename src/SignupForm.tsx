@@ -7,7 +7,7 @@ function SignupForm() {
 
   const handleSubmit = async (event) => {
     event.preventDefault();
-    const response = await fetch('localhost:4000/api/user', {
+    const response = await fetch('http://localhost:4000/api/user', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -25,8 +25,12 @@ function SignupForm() {
   return (
     <form onSubmit={handleSubmit}>
       <label>
-        Name:
+        Имя:
         <input type="text" name="name" value={formData.name} onChange={handleChange} />
+      </label>
+      <label>
+        Фамилия:
+        <input type="text" name="surname" value={formData.name} onChange={handleChange} />
       </label>
       <label>
         Email:
