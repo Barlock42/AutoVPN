@@ -21,7 +21,7 @@ app.post('/api/user', (req, res) => {
   // Convert the sheet to JSON object
   console.log(sheet);
   //const data = XLSX.utils.sheet_to_json(sheet);
-  // send the response back to the client
+  // send the response back to the client //
   res.json({ message: 'Form submitted successfully!' });
 });
 
