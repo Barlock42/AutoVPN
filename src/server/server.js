@@ -1,4 +1,14 @@
-// Node.js server that handles form submission
+function generateRandomCode() {
+  const length = 6;
+  const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  let result = '';
+  for (let i = 0; i < length; i++) {
+    result += characters.charAt(Math.floor(Math.random() * characters.length));
+  }
+  return result;
+}
+
+// Node.js server that handles form submission 
 const express = require("express");
 const bodyParser = require("body-parser");
 
@@ -50,6 +60,7 @@ app.post("/api/user", (req, res) => {
       console.log(
         `${name} ${surname} with email ${email} exists adn active in the Excel file.`
       );
+      console.log(generateRandomCode());
       break; // Exit loop if data is found
     }
   }
