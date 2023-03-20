@@ -1,16 +1,20 @@
-import React, { useState } from 'react';
-import './styles/SignupForm.css'
-import { User } from './types' 
+import React, { useState } from "react";
+import "./styles/SignupForm.css";
+import { User } from "./types";
 
 function SignupForm() {
-  const [formData, setFormData] = useState<User>({ name: '', surname: '', email: '' });
+  const [formData, setFormData] = useState<User>({
+    name: "",
+    surname: "",
+    email: "",
+  });
 
   const handleSubmit = async (event) => {
     event.preventDefault();
-    const response = await fetch('http://localhost:4000/api/user', {
-      method: 'POST',
+    const response = await fetch("http://localhost:4000/api/user", {
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       },
       body: JSON.stringify(formData),
     });
@@ -26,15 +30,30 @@ function SignupForm() {
     <form onSubmit={handleSubmit}>
       <label>
         Имя:
-        <input type="text" name="name" value={formData.name} onChange={handleChange} />
+        <input
+          type="text"
+          name="name"
+          value={formData.name}
+          onChange={handleChange}
+        />
       </label>
       <label>
         Фамилия:
-        <input type="text" name="surname" value={formData.name} onChange={handleChange} />
+        <input
+          type="text"
+          name="surname"
+          value={formData.surname}
+          onChange={handleChange}
+        />
       </label>
       <label>
         Email:
-        <input type="email" name="email" value={formData.email} onChange={handleChange} />
+        <input
+          type="email"
+          name="email"
+          value={formData.email}
+          onChange={handleChange}
+        />
       </label>
       <button type="submit">Submit</button>
     </form>
