@@ -1,14 +1,28 @@
-let generateRandomCode = null;
-import('./codeGen.mjs').then((module) => {
+let generateRandomCode = () => {};
+import("./codeGen.mjs").then((module) => {
   generateRandomCode = module.generateRandomCode;
 });
 
-// Node.js server that handles form submission 
+async function getCode() {
+  return await generateRandomCode();
+}
+
+console.log(getCode());
+
+// Node.js server that handles form submission
 const express = require("express");
 const bodyParser = require("body-parser");
 
 const cors = require("cors");
 const XLSX = require("xlsx");
+
+let userCode = null;
+getCode().then((result) => {
+  userCode = result;
+  console.log(userCode); // print the string value of userCode
+}).catch((err) => {
+  console.error(err); // handle any errors that occurred while generating the code
+});
 
 const app = express();
 app.use(
@@ -50,12 +64,24 @@ app.post("/api/user", (req, res) => {
     const statusCell = sheet[`D${i}`]; // Assuming status column is D
     const curStatus = statusCell ? statusCell.v : ""; // Get the status value or empty string
 
-    if (curName === name && curSurname === surname && curEmail === email && curStatus === "Active") {
+    if (
+      curName === name &&
+      curSurname === surname &&
+      curEmail === email &&
+      curStatus === "Active"
+    ) {
       // Check if all data matches
       console.log(
         `${name} ${surname} with email ${email} exists adn active in the Excel file.`
       );
-      console.log(generateRandomCode());
+      console.log(userCode);
+      //   transporter.sendMail(message, function(error, info) {
+      //     if (error) {
+      //         console.log(error);
+      //     } else {
+      //         console.log('Email sent: ' + info.response);
+      //     }
+      // });
       break; // Exit loop if data is found
     }
   }
@@ -63,7 +89,7 @@ app.post("/api/user", (req, res) => {
   res.json({ message: "Form submitted successfully!" });
 });
 
-app.listen(4000, () => {
+app.listen(4001, () => {
   //
-  console.log("Server started on port 4000");
+  console.log("Server started on port 4001");
 });
