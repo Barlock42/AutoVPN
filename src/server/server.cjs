@@ -17,12 +17,14 @@ const cors = require("cors");
 const XLSX = require("xlsx");
 
 let userCode = null;
-getCode().then((result) => {
-  userCode = result;
-  console.log(userCode); // print the string value of userCode
-}).catch((err) => {
-  console.error(err); // handle any errors that occurred while generating the code
-});
+getCode()
+  .then((result) => {
+    userCode = result;
+    console.log(userCode); // print the string value of userCode
+  })
+  .catch((err) => {
+    console.error(err); // handle any errors that occurred while generating the code
+  });
 
 const app = express();
 app.use(
