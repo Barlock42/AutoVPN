@@ -1,9 +1,9 @@
 let generateRandomCode = null;
-import('./codeGen.mjs').then((module) => {
+import("./codeGen.mjs").then((module) => {
   generateRandomCode = module.generateRandomCode;
 });
 
-// Node.js server that handles form submission 
+// Node.js server that handles form submission
 const express = require("express");
 const bodyParser = require("body-parser");
 
@@ -50,7 +50,12 @@ app.post("/api/user", (req, res) => {
     const statusCell = sheet[`D${i}`]; // Assuming status column is D
     const curStatus = statusCell ? statusCell.v : ""; // Get the status value or empty string
 
-    if (curName === name && curSurname === surname && curEmail === email && curStatus === "Active") {
+    if (
+      curName === name &&
+      curSurname === surname &&
+      curEmail === email &&
+      curStatus === "Active"
+    ) {
       // Check if all data matches
       console.log(
         `${name} ${surname} with email ${email} exists adn active in the Excel file.`
