@@ -61,10 +61,10 @@ app.post("/api/user", (req, res) => {
         `${name} ${surname} with email ${email} exists adn active in the Excel file.`
       );
       console.log(generateRandomCode());
-      break; // Exit loop if data is found
+      break; // Exit loop if data is found //
     }
   }
-  // send the response back to the client //
+  // send the response back to the client // 
   res.json({ message: "Form submitted successfully!" });
 });
 
