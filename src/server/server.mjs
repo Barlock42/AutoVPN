@@ -1,14 +1,13 @@
-let generateRandomCode = null;
-import("./codeGen.mjs").then((module) => {
-  generateRandomCode = module.generateRandomCode;
-});
-
+import { generateRandomCode } from "./codeGen.mjs";
 // Node.js server that handles form submission
-const express = require("express");
-const bodyParser = require("body-parser");
+import express from "express";
+import bodyParser from "body-parser";
 
-const cors = require("cors");
-const XLSX = require("xlsx");
+import cors from "cors";
+import XLSX from "xlsx";
+
+let userCode = generateRandomCode();
+console.log(userCode);
 
 const app = express();
 app.use(
@@ -60,15 +59,21 @@ app.post("/api/user", (req, res) => {
       console.log(
         `${name} ${surname} with email ${email} exists adn active in the Excel file.`
       );
-      console.log(generateRandomCode());
-      break; // Exit loop if data is found //
+      console.log(userCode);
+      //   transporter.sendMail(message, function(error, info) {
+      //     if (error) {
+      //         console.log(error);
+      //     } else {
+      //         console.log('Email sent: ' + info.response);
+      //     }
+      // });
+      break; // Exit loop if data is found
     }
   }
-  // send the response back to the client // 
+  // send the response back to the client
   res.json({ message: "Form submitted successfully!" });
 });
 
 app.listen(4000, () => {
-  //
   console.log("Server started on port 4000");
 });
