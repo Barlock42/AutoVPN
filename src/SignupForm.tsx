@@ -11,7 +11,7 @@ function SignupForm() {
 
   const handleSubmit = async (event) => {
     event.preventDefault();
-    const response = await fetch("http://localhost:4001/api/user", {
+    const response = await fetch("http://localhost:4000/api/user", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

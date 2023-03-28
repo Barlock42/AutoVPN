@@ -1,30 +1,13 @@
-let generateRandomCode = () => {};
-import("./codeGen.mjs").then((module) => {
-  generateRandomCode = module.generateRandomCode;
-});
-
-async function getCode() {
-  return await generateRandomCode();
-}
-
-console.log(getCode());
-
+import { generateRandomCode } from "./codeGen.mjs";
 // Node.js server that handles form submission
-const express = require("express");
-const bodyParser = require("body-parser");
+import express from "express";
+import bodyParser from "body-parser";
 
-const cors = require("cors");
-const XLSX = require("xlsx");
+import cors from "cors";
+import XLSX from "xlsx";
 
-let userCode = null;
-getCode()
-  .then((result) => {
-    userCode = result;
-    console.log(userCode); // print the string value of userCode
-  })
-  .catch((err) => {
-    console.error(err); // handle any errors that occurred while generating the code
-  });
+let userCode = generateRandomCode();
+console.log(userCode);
 
 const app = express();
 app.use(
@@ -87,11 +70,10 @@ app.post("/api/user", (req, res) => {
       break; // Exit loop if data is found
     }
   }
-  // send the response back to the client //
+  // send the response back to the client
   res.json({ message: "Form submitted successfully!" });
 });
 
-app.listen(4001, () => {
-  //
-  console.log("Server started on port 4001");
+app.listen(4000, () => {
+  console.log("Server started on port 4000");
 });
