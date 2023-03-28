@@ -6,9 +6,42 @@ import bodyParser from "body-parser";
 import cors from "cors";
 import XLSX from "xlsx";
 
-let userCode = generateRandomCode();
-console.log(userCode);
+import AWS from "aws-sdk";
 
+
+
+const ses = new AWS.SES({ region: 'eu-central-1' }); // replace with your region
+
+const sendVerificationEmail = async (email, verificationLink) => {
+  const params = {
+    Destination: {
+      ToAddresses: [email],
+    },
+    Message: {
+      Body: {
+        Html: {
+          Charset: 'UTF-8',
+          Data: `Введите 6-значный код ${generateRandomCode} для подтверждения.
+          Click <a href="${verificationLink}">here</a> to verify your email address.`,
+        },
+      },
+      Subject: {
+        Charset: 'UTF-8',
+        Data: 'Verify your email address',
+      },
+    },
+    Source: 'admin2@bas-k.kz', // replace with your verified email address
+  };
+
+  try {
+    await ses.sendEmail(params).promise();
+    console.log(`Verification email sent to ${email}`);
+  } catch (err) {
+    console.error(`Error sending verification email to ${email}: ${err.message}`);
+  }
+};
+
+let userCode = generateRandomCode();
 const app = express();
 app.use(
   cors({
@@ -57,16 +90,10 @@ app.post("/api/user", (req, res) => {
     ) {
       // Check if all data matches
       console.log(
-        `${name} ${surname} with email ${email} exists adn active in the Excel file.`
+        `${name} ${surname} with email ${email} exists and active in the Excel file.`
       );
       console.log(userCode);
-      //   transporter.sendMail(message, function(error, info) {
-      //     if (error) {
-      //         console.log(error);
-      //     } else {
-      //         console.log('Email sent: ' + info.response);
-      //     }
-      // });
+      sendVerificationEmail(email, "http://localhost:4000/api/verification/");
       break; // Exit loop if data is found
     }
   }
