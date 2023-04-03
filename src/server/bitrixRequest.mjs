@@ -1,8 +1,9 @@
 import axios from "axios";
+import { config } from './config.mjs';
 
 export function bitrixRequest() {
   axios
-    .get("https://your-domain.bitrix24.com/rest/user.get", {
+    .get( config.bitixAddress , {
       params: {
         filter: {},
         auth: "your-auth-token",
