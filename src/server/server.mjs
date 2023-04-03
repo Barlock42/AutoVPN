@@ -1,4 +1,6 @@
 import { generateRandomCode } from "./codeGen.mjs";
+import { config } from './config.js';
+
 // Node.js server that handles form submission
 import express from "express";
 import bodyParser from "body-parser";
@@ -7,7 +9,7 @@ import cors from "cors";
 import XLSX from "xlsx";
 
 import AWS from "aws-sdk";
-const ses = new AWS.SES({ region: 'eu-central-1' }); // replace with your region
+const ses = new AWS.SES({ region: config.region }); // replace with your region
 
 const sendVerificationEmail = async (email, verificationLink) => {
   const params = {
@@ -27,7 +29,7 @@ const sendVerificationEmail = async (email, verificationLink) => {
         Data: 'Verify your email address',
       },
     },
-    Source: 'admin2@bas-k.kz', // replace with your verified email address
+    Source: config.email, // replace with your verified email address
   };
 
   try {
