@@ -7,9 +7,6 @@ import cors from "cors";
 import XLSX from "xlsx";
 
 import AWS from "aws-sdk";
-
-
-
 const ses = new AWS.SES({ region: 'eu-central-1' }); // replace with your region
 
 const sendVerificationEmail = async (email, verificationLink) => {
