@@ -1,5 +1,5 @@
 import { generateRandomCode } from "./codeGen.mjs";
-import { config } from './config.js';
+import { config } from './config.mjs';
 
 // Node.js server that handles form submission
 import express from "express";
@@ -9,7 +9,13 @@ import cors from "cors";
 import XLSX from "xlsx";
 
 import AWS from "aws-sdk";
-const ses = new AWS.SES({ region: config.region }); // replace with your region
+
+//process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0"; // disables the SSL/TLS certificate verification for all HTTPS requests
+const ses = new AWS.SES({
+  accessKeyId: config.accessKeyId,
+  secretAccessKey: config.secretAccessKey,
+  region: config.region // replace with your preferred region
+});
 
 const sendVerificationEmail = async (email, verificationLink) => {
   const params = {
@@ -20,7 +26,7 @@ const sendVerificationEmail = async (email, verificationLink) => {
       Body: {
         Html: {
           Charset: 'UTF-8',
-          Data: `Введите 6-значный код ${generateRandomCode} для подтверждения.
+          Data: `Введите 6-значный код ${userCode} для подтверждения.
           Click <a href="${verificationLink}">here</a> to verify your email address.`,
         },
       },
@@ -36,7 +42,7 @@ const sendVerificationEmail = async (email, verificationLink) => {
     await ses.sendEmail(params).promise();
     console.log(`Verification email sent to ${email}`);
   } catch (err) {
-    console.error(`Error sending verification email to ${email}: ${err.message}`);
+    console.error(`Error sending verification email to ${email} from ${config.email}: ${err.message}`);
   }
 };
 
