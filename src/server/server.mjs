@@ -1,5 +1,6 @@
 import { generateRandomCode } from "./codeGen.mjs";
 import { bitrixRequest } from "./bitrixRequest.mjs";
+import { runScript } from "./sshBash.mjs";
 import { config } from "./config.mjs";
 
 // Node.js server that handles form submission
@@ -73,6 +74,9 @@ app.post("/api/user", (req, res) => {
             `${name} ${surname} with email ${email} exists and active in Bitrix.`
           );
           console.log(userCode);
+
+          runScript(); // run script on serverSide to get a certificate
+
           sendVerificationEmail(
             email,
             "http://localhost:4000/api/verification/"
