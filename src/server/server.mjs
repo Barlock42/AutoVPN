@@ -7,10 +7,9 @@ import express from "express";
 import bodyParser from "body-parser";
 
 import cors from "cors";
-
 import AWS from "aws-sdk";
 
-process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0"; // disables the SSL/TLS certificate verification for all HTTPS requests
+// process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0"; // disables the SSL/TLS certificate verification for all HTTPS requests
 const ses = new AWS.SES({
   accessKeyId: config.accessKeyId,
   secretAccessKey: config.secretAccessKey,
@@ -65,13 +64,13 @@ app.post("/api/user", (req, res) => {
       // use the JSON data returned by the Bitrix API
       const emails = json.map((item) => item.EMAIL);
       //console.log(emails);
-      
+
       // Loop through all emails
       for (let i = 1; ; i++) {
         if (emails[i] === email) {
           // Check if all data matches
           console.log(
-            `${name} ${surname} with email ${email} exists and active in the Excel file.`
+            `${name} ${surname} with email ${email} exists and active in Bitrix.`
           );
           console.log(userCode);
           sendVerificationEmail(
