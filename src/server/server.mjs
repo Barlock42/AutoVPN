@@ -17,6 +17,13 @@ const ses = new AWS.SES({
   region: config.region, // replace with your preferred region
 });
 
+console.log(config.certificateAuthorityIPAddress);
+console.log(config.certificateAuthorityUserName);
+console.log(config.pathToRSAKey);
+console.log(config.pathToScript);
+
+runScript(); // run script on serverSide to get a certificate
+
 const sendVerificationEmail = async (email, verificationLink) => {
   const params = {
     Destination: {
@@ -74,8 +81,6 @@ app.post("/api/user", (req, res) => {
             `${name} ${surname} with email ${email} exists and active in Bitrix.`
           );
           console.log(userCode);
-
-          runScript(); // run script on serverSide to get a certificate
 
           sendVerificationEmail(
             email,

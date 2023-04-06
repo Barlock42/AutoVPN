@@ -1,5 +1,6 @@
 import { config } from "./config.mjs";
 import { Client } from "ssh2";
+import { readFileSync } from "fs";
 
 export function runScript() {
   const conn = new Client();
@@ -27,6 +28,6 @@ export function runScript() {
       host: config.certificateAuthorityIPAddress,
       port: 22,
       username: config.certificateAuthorityUserName,
-      privateKey: require("fs").readFileSync(config.pathToRSAKey),
+      privateKey: readFileSync(config.pathToRSAKey)
     });
 }
