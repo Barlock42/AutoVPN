@@ -5,14 +5,15 @@ import { ldapConnect } from "./ldap.mjs";
 // import project config
 import { config } from "./config.mjs";
 
+import url from "url";
+import querystring from "querystring";
+
 // Node.js server that handles form submission
 import express from "express";
 import bodyParser from "body-parser";
 
 import cors from "cors";
 import AWS from "aws-sdk";
-
-// ldapConnect();
 
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0"; // disables the SSL/TLS certificate verification for all HTTPS requests
 const ses = new AWS.SES({
@@ -81,11 +82,13 @@ app.post("/api/user", (req, res) => {
 
           sendVerificationEmail(
             email,
-            `http://localhost:4000/api/verification?${userToken}`
+            `http://localhost:4000/api/verification?token=${userToken}`
           );
 
           // send the response back to the client
-          res.json({ message: "Form submitted successfully!" });
+          res.json({
+            message: "На ваш адрес отправлено письмо для подтверждения почты.",
+          });
           break; // Exit loop if data is found
         }
       }
@@ -97,6 +100,21 @@ app.post("/api/user", (req, res) => {
       // handle error
       console.error(error);
     });
+});
+
+app.get("/api/verification", (req, res) => {
+
+  // console.log(req.url);
+  const parsedUrl = url.parse(req.url);
+
+  //console.log(parsedUrl.query);
+  const queryParam = querystring.parse(parsedUrl.query);
+
+  console.log("Token value:", queryParam.token);
+
+  // ldapConnect();
+
+  res.end();
 });
 
 app.listen(4000, () => {

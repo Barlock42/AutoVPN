@@ -1,7 +1,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
 
-function ResultPage() {
+function SignResultForm() {
   const searchParams = new URLSearchParams(window.location.search);
   const variable = JSON.parse(searchParams.get("variable"));
   // console.log(variable);
@@ -14,4 +14,4 @@ function ResultPage() {
   );
 }
 
-export default ResultPage;
+export default SignResultForm;
