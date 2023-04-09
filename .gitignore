@@ -12,6 +12,7 @@ src/data
 # production
 /build
 src/server/config.mjs
+src/LDAPserver
 
 # misc
 .DS_Store

@@ -1,6 +1,7 @@
 import { generateRandomCode } from "./codeGen.mjs";
 import { bitrixRequest } from "./bitrixRequest.mjs";
 import { runScript } from "./sshBash.mjs";
+import { ldapConnect } from "./ldap.mjs";
 import { config } from "./config.mjs";
 
 // Node.js server that handles form submission
@@ -10,6 +11,8 @@ import bodyParser from "body-parser";
 import cors from "cors";
 import AWS from "aws-sdk";
 
+ldapConnect();
+
 // process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0"; // disables the SSL/TLS certificate verification for all HTTPS requests
 const ses = new AWS.SES({
   accessKeyId: config.accessKeyId,
@@ -17,12 +20,7 @@ const ses = new AWS.SES({
   region: config.region, // replace with your preferred region
 });
 
-console.log(config.certificateAuthorityIPAddress);
-console.log(config.certificateAuthorityUserName);
-console.log(config.pathToRSAKey);
-console.log(config.pathToScript);
-
-runScript(); // run script on serverSide to get a certificate
+// runScript(); // run script on serverSide to get a certificate
 
 const sendVerificationEmail = async (email, verificationLink) => {
   const params = {
