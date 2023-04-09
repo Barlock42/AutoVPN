@@ -1,4 +1,4 @@
-import { generateRandomCode } from "./codeGen.mjs";
+import { generateToken } from "./tokenGen.mjs";
 import { bitrixRequest } from "./bitrixRequest.mjs";
 import { runScript } from "./sshBash.mjs";
 import { ldapConnect } from "./ldap.mjs";
@@ -12,7 +12,7 @@ import bodyParser from "body-parser";
 import cors from "cors";
 import AWS from "aws-sdk";
 
-ldapConnect();
+// ldapConnect();
 
 // process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0"; // disables the SSL/TLS certificate verification for all HTTPS requests
 const ses = new AWS.SES({
@@ -32,20 +32,20 @@ const sendVerificationEmail = async (email, verificationLink) => {
       Body: {
         Html: {
           Charset: "UTF-8",
-          Data: `Введите 6-значный код ${userCode} для подтверждения.
-          Click <a href="${verificationLink}">here</a> to verify your email address.`,
+          Data: `
+          Нажмите <a href="${verificationLink}">сюда</a> для подтверждения вашего email адреса.`,
         },
       },
       Subject: {
         Charset: "UTF-8",
-        Data: "Verify your email address",
+        Data: "Подтверждения вашего email адреса",
       },
     },
     Source: config.email, // replace with your verified email address
   };
 
   try {
-    await ses.sendEmail(params).promise();
+    // await ses.sendEmail(params).promise();
     console.log(`Verification email sent to ${email}`);
   } catch (err) {
     console.error(
@@ -54,7 +54,8 @@ const sendVerificationEmail = async (email, verificationLink) => {
   }
 };
 
-let userCode = generateRandomCode();
+let userToken = generateToken();
+
 const app = express();
 app.use(
   cors({
@@ -64,7 +65,7 @@ app.use(
 );
 
 app.post("/api/user", (req, res) => {
-  const { name, surname, email } = req.body;
+  const { email } = req.body;
 
   bitrixRequest()
     .then((json) => {
@@ -77,13 +78,12 @@ app.post("/api/user", (req, res) => {
         if (emails[i] === email) {
           // Check if all data matches
           console.log(
-            `${name} ${surname} with email ${email} exists and active in Bitrix.`
+            `Email ${email} exists and active in Bitrix.`
           );
-          console.log(userCode);
 
           sendVerificationEmail(
             email,
-            "http://localhost:4000/api/verification/"
+            `http://localhost:4000/api/verification?${userToken}`
           );
           break; // Exit loop if data is found
         }

@@ -1,11 +1,9 @@
 import React, { useState } from "react";
-import "./styles/SignupForm.css";
-import { User } from "./types";
+import "../styles/SignupForm.css";
+import { User } from "../types";
 
 function SignupForm() {
   const [formData, setFormData] = useState<User>({
-    name: "",
-    surname: "",
     email: "",
   });
 
@@ -19,6 +17,8 @@ function SignupForm() {
       body: JSON.stringify(formData),
     });
     const data = await response.json();
+    // After submitting the form, redirect to the result page
+    //window.location.href = `/result`;
     console.log(data);
   };
 
@@ -28,24 +28,6 @@ function SignupForm() {
 
   return (
     <form onSubmit={handleSubmit}>
-      <label>
-        Имя:
-        <input
-          type="text"
-          name="name"
-          value={formData.name}
-          onChange={handleChange}
-        />
-      </label>
-      <label>
-        Фамилия:
-        <input
-          type="text"
-          name="surname"
-          value={formData.surname}
-          onChange={handleChange}
-        />
-      </label>
       <label>
         Email:
         <input

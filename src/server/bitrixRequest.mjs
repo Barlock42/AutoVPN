@@ -12,7 +12,7 @@ export function bitrixRequest() {
     })
     .then((response) => {
       // handle successful response
-      console.log(response.data.result);
+      // console.log(response.data.result);
       return response.data.result;
     })
     .catch((error) => {
