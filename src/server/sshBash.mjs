@@ -1,5 +1,6 @@
-import { config } from "./config.mjs";
 import { spawn } from 'child_process';
+// import project config
+import { config } from "./config.mjs";
 
 export function runScript() {
 

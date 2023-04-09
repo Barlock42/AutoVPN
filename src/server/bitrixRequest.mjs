@@ -1,4 +1,5 @@
 import axios from "axios";
+// import project config
 import { config } from "./config.mjs";
 
 export function bitrixRequest() {

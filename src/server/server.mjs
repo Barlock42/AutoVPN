@@ -2,6 +2,7 @@ import { generateRandomCode } from "./codeGen.mjs";
 import { bitrixRequest } from "./bitrixRequest.mjs";
 import { runScript } from "./sshBash.mjs";
 import { ldapConnect } from "./ldap.mjs";
+// import project config
 import { config } from "./config.mjs";
 
 // Node.js server that handles form submission
@@ -87,7 +88,6 @@ app.post("/api/user", (req, res) => {
           break; // Exit loop if data is found
         }
       }
-      
     })
     .catch((error) => {
       // handle error
