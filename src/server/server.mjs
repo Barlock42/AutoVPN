@@ -14,7 +14,7 @@ import AWS from "aws-sdk";
 
 // ldapConnect();
 
-// process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0"; // disables the SSL/TLS certificate verification for all HTTPS requests
+process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0"; // disables the SSL/TLS certificate verification for all HTTPS requests
 const ses = new AWS.SES({
   accessKeyId: config.accessKeyId,
   secretAccessKey: config.secretAccessKey,
@@ -71,31 +71,32 @@ app.post("/api/user", (req, res) => {
     .then((json) => {
       // use the JSON data returned by the Bitrix API
       const emails = json.map((item) => item.EMAIL);
-      //console.log(emails);
+      // console.log(emails.length);
 
       // Loop through all emails
-      for (let i = 1; ; i++) {
+      for (let i = 0; i < emails.length; i++) {
         if (emails[i] === email) {
           // Check if all data matches
-          console.log(
-            `Email ${email} exists and active in Bitrix.`
-          );
+          console.log(`Email ${email} exists and active in Bitrix.`);
 
           sendVerificationEmail(
             email,
             `http://localhost:4000/api/verification?${userToken}`
           );
+
+          // send the response back to the client
+          res.json({ message: "Form submitted successfully!" });
           break; // Exit loop if data is found
         }
       }
+      console.error(`Email ${email} doesn't exist or not active in Bitrix.`);
+      // send the response back to the client
+      res.json({ message: "Ваш email не был найден." });
     })
     .catch((error) => {
       // handle error
       console.error(error);
     });
-
-  // send the response back to the client
-  res.json({ message: "Form submitted successfully!" });
 });
 
 app.listen(4000, () => {
