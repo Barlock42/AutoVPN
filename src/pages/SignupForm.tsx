@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import "../styles/SignupForm.css";
 import { User } from "../types";
 
-function SignupForm(props) {
+function SignupForm() {
   const [formData, setFormData] = useState<User>({
     email: "",
   });
@@ -16,10 +16,10 @@ function SignupForm(props) {
       },
       body: JSON.stringify(formData),
     });
-    props.updateVariable(await response.json());
-    // console.log(props.variable);
+    const result = await response.json();
+    // console.log(result.message);
     // After submitting the form, redirect to the result page
-    window.location.href = '/result';
+    window.location.href = `/result?variable=${JSON.stringify(result.message)}`;
   };
 
   const handleChange = (event) => {

@@ -1,6 +1,6 @@
 import "./App.css";
 import SignupForm from "./pages/SignupForm.tsx";
-import SignResultForm from "./pages/SignResultForm.tsx";
+import SignResultForm from "./pages/SignResultForm";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom"; // Import BrowserRouter, Routes, and Route
 
 const App = () => {
