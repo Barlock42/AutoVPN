@@ -1,33 +1,33 @@
 import { config } from "./config.mjs";
-import { Client } from "ssh2";
-import { readFileSync } from "fs";
+import { spawn } from 'child_process';
 
 export function runScript() {
-  const conn = new Client();
-  conn
-    .on("ready", function () {
-      console.log("Client :: ready");
-      conn.exec("bash " + config.pathToScript, function (err, stream) {
-        if (err) throw err;
-        stream
-          .on("close", function (code, signal) {
-            console.log(
-              "Stream :: close :: code: " + code + ", signal: " + signal
-            );
-            conn.end();
-          })
-          .on("data", function (data) {
-            console.log("STDOUT: " + data);
-          })
-          .stderr.on("data", function (data) {
-            console.log("STDERR: " + data);
-          });
-      });
-    })
-    .connect({
-      host: config.certificateAuthorityIPAddress,
-      port: 22,
-      username: config.certificateAuthorityUserName,
-      privateKey: readFileSync(config.pathToRSAKey)
-    });
+
+  // Replace the values with your server and key details
+  const server = {
+    host: config.certificateAuthorityIPAddress,
+    username: config.certificateAuthorityUserName,
+    privateKey: config.pathToRSAKey,
+  };
+
+  // Replace the path and filename with your Bash script details
+  const script = spawn("ssh", [
+    "-i",
+    `${server.privateKey}`,
+    `${server.username}@${server.host}`,
+    "bash",
+    config.pathToScript,
+  ]);
+
+  script.stdout.on("data", (data) => {
+    console.log(`stdout: ${data}`);
+  });
+
+  script.stderr.on("data", (data) => {
+    console.error(`stderr: ${data}`);
+  });
+
+  script.on("close", (code) => {
+    console.log(`child process exited with code ${code}`);
+  });
 }
