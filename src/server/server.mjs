@@ -1,7 +1,7 @@
 import { generateToken } from "./tokenGen.mjs";
 import { bitrixRequest } from "./bitrixRequest.mjs";
 import { runScript } from "./sshBash.mjs";
-import { ldapConnect } from "./ldap.mjs";
+import { LdapConnection } from "./ldap.mjs";
 // import project config
 import { config } from "./config.mjs";
 
@@ -14,6 +14,8 @@ import bodyParser from "body-parser";
 
 import cors from "cors";
 import AWS from "aws-sdk";
+
+const ldapConnection = new LdapConnection();
 
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0"; // disables the SSL/TLS certificate verification for all HTTPS requests
 const ses = new AWS.SES({
@@ -80,10 +82,13 @@ app.post("/api/user", (req, res) => {
           // Check if all data matches
           console.log(`Email ${email} exists and active in Bitrix.`);
 
-          sendVerificationEmail(
-            email,
-            `http://localhost:4000/api/verification?token=${userToken}`
-          );
+          console.log(ldapConnection.getUser(email));
+          // ldapConnection.addUser(email, userToken);
+
+          // sendVerificationEmail(
+          //   email,
+          //   `http://localhost:4000/api/verification?token=${userToken}`
+          // );
 
           // send the response back to the client
           res.json({
@@ -103,7 +108,7 @@ app.post("/api/user", (req, res) => {
 });
 
 app.get("/api/verification", (req, res) => {
-
+  
   // console.log(req.url);
   const parsedUrl = url.parse(req.url);
 
@@ -112,7 +117,7 @@ app.get("/api/verification", (req, res) => {
 
   console.log("Token value:", queryParam.token);
 
-  // ldapConnect();
+  // ldapConnection.getUser()
 
   res.end();
 });
