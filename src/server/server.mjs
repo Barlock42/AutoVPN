@@ -1,7 +1,6 @@
 import { generateToken } from "./tokenGen.mjs";
 import { bitrixRequest } from "./bitrixRequest.mjs";
 import { runScript } from "./sshBash.mjs";
-import { MongoConnection } from "./mongo.mjs";
 // import project config
 import { config } from "./config.mjs";
 
@@ -15,14 +14,21 @@ import fs from "fs";
 import express from "express";
 import bodyParser from "body-parser";
 
-import cors from "cors";
-import AWS from "aws-sdk";
+// Firebase connection
+import { initializeApp } from "firebase/app";
+import { getDatabase, ref, push, onValue } from "firebase/database";
 
-//const mongoConnection = new MongoConnection();
-//mongoConnection.addUser();
+import cors from "cors";
+import { SES } from "@aws-sdk/client-ses";
+
+// Initialize Firebase
+// Initialize Firebase
+const firebaseConfig = config.firebaseConfig;
+const firebaseApp = initializeApp(firebaseConfig);
+const database = getDatabase(firebaseApp);
 
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0"; // disables the SSL/TLS certificate verification for all HTTPS requests
-const ses = new AWS.SES({
+const ses = new SES({
   accessKeyId: config.accessKeyId,
   secretAccessKey: config.secretAccessKey,
   region: config.region, // replace with your preferred region
@@ -52,7 +58,7 @@ const sendVerificationEmail = async (email, verificationLink) => {
   };
 
   try {
-    // await ses.sendEmail(params).promise();
+    await ses.sendEmail(params).promise();
     console.log(`Verification email sent to ${email}`);
   } catch (err) {
     console.error(
@@ -88,8 +94,19 @@ app.post("/api/user", (req, res) => {
           // Check if all data matches
           console.log(`Email ${email} exists and active in Bitrix.`);
 
-          //console.log(ldapConnection.getUser(email));
-          //ldapConnection.addUser(email, userToken);
+          // Check if user exists
+          const usersRef = ref(database, "users");
+          // Access Firebase Realtime Database
+          onValue(ref(database, "users"), (snapshot) => {
+            if (!snapshot.exists()) {
+              // User does not exist, add them to the database
+              push(usersRef, {
+                email: email,
+                token: userToken,
+                time: new Date().getTime(),
+              });
+            }
+          });
 
           sendVerificationEmail(
             email,
@@ -146,9 +163,12 @@ app.get("/api/verification/download", (req, res) => {
   console.log(filePath);
   const stat = fs.statSync(filePath);
 
-  res.setHeader('Content-Length', stat.size);
-  res.setHeader('Content-Type', 'application/octet-stream');
-  res.setHeader('Content-Disposition', 'attachment; filename=filename.extension');
+  res.setHeader("Content-Length", stat.size);
+  res.setHeader("Content-Type", "application/octet-stream");
+  res.setHeader(
+    "Content-Disposition",
+    "attachment; filename=filename.extension"
+  );
 
   const readStream = fs.createReadStream(filePath);
   readStream.pipe(res);
