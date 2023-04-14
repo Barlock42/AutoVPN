@@ -1,12 +1,15 @@
 import { generateToken } from "./tokenGen.mjs";
 import { bitrixRequest } from "./bitrixRequest.mjs";
 import { runScript } from "./sshBash.mjs";
-import { LdapConnection } from "./ldap.mjs";
+import { MongoConnection } from "./mongo.mjs";
 // import project config
 import { config } from "./config.mjs";
 
 import url from "url";
 import querystring from "querystring";
+
+import path from "path";
+import fs from "fs";
 
 // Node.js server that handles form submission
 import express from "express";
@@ -15,7 +18,8 @@ import bodyParser from "body-parser";
 import cors from "cors";
 import AWS from "aws-sdk";
 
-const ldapConnection = new LdapConnection();
+//const mongoConnection = new MongoConnection();
+//mongoConnection.addUser();
 
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0"; // disables the SSL/TLS certificate verification for all HTTPS requests
 const ses = new AWS.SES({
@@ -75,20 +79,22 @@ app.post("/api/user", (req, res) => {
       // use the JSON data returned by the Bitrix API
       const emails = json.map((item) => item.EMAIL);
       // console.log(emails.length);
+      let emailFound = false;
 
       // Loop through all emails
       for (let i = 0; i < emails.length; i++) {
         if (emails[i] === email) {
+          emailFound = true;
           // Check if all data matches
           console.log(`Email ${email} exists and active in Bitrix.`);
 
-          console.log(ldapConnection.getUser(email));
-          // ldapConnection.addUser(email, userToken);
+          //console.log(ldapConnection.getUser(email));
+          //ldapConnection.addUser(email, userToken);
 
-          // sendVerificationEmail(
-          //   email,
-          //   `http://localhost:4000/api/verification?token=${userToken}`
-          // );
+          sendVerificationEmail(
+            email,
+            `http://localhost:4000/api/verification?token=${userToken}`
+          );
 
           // send the response back to the client
           res.json({
@@ -97,9 +103,12 @@ app.post("/api/user", (req, res) => {
           break; // Exit loop if data is found
         }
       }
-      console.error(`Email ${email} doesn't exist or not active in Bitrix.`);
-      // send the response back to the client
-      res.json({ message: "Ваш email не был найден." });
+
+      if (!emailFound) {
+        console.error(`Email ${email} doesn't exist or not active in Bitrix.`);
+        // send the response back to the client
+        res.json({ message: "Ваш email не был найден." });
+      }
     })
     .catch((error) => {
       // handle error
@@ -108,7 +117,6 @@ app.post("/api/user", (req, res) => {
 });
 
 app.get("/api/verification", (req, res) => {
-  
   // console.log(req.url);
   const parsedUrl = url.parse(req.url);
 
@@ -117,11 +125,37 @@ app.get("/api/verification", (req, res) => {
 
   console.log("Token value:", queryParam.token);
 
-  // ldapConnection.getUser()
+  //mongoConnection.getUser()
 
   res.end();
 });
 
+app.get("/api/verification/download", (req, res) => {
+  console.log("Got download request");
+  // console.log(req.url);
+  const parsedUrl = url.parse(req.url);
+
+  //console.log(parsedUrl.query);
+  const queryParam = querystring.parse(parsedUrl.query);
+
+  console.log("Token value:", queryParam.token);
+
+  //mongoConnection.getUser();
+
+  const filePath = path.join(config.certPath, config.certName);
+  console.log(filePath);
+  const stat = fs.statSync(filePath);
+
+  res.setHeader('Content-Length', stat.size);
+  res.setHeader('Content-Type', 'application/octet-stream');
+  res.setHeader('Content-Disposition', 'attachment; filename=filename.extension');
+
+  const readStream = fs.createReadStream(filePath);
+  readStream.pipe(res);
+});
+
+const PORT = 4000;
+
 app.listen(4000, () => {
-  console.log("Server started on port 4000");
+  console.log(`Server started on port ${PORT}`);
 });

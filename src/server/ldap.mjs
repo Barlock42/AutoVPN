@@ -6,16 +6,19 @@ const { createClient } = ldapjs;
 
 export class LdapConnection {
   client = null;
-  baseDN = "dc=userDataBase,dc=org";
+  baseDN = "dc=example,dc=org";
 
   constructor() {
     this.client = createClient({
       url: config.ldap.port,
+      // tlsOptions: {
+      //   rejectUnauthorized: false
+      // }
     });
 
-    this.client.bind("cn=admin,dc=userDataBase,dc=org", config.ldap.admin, (err) => {
+    this.client.bind("cn=admin,dc=example,dc=org", config.ldap.admin, (err) => {
       if (err) {
-        console.error(err);
+        console.error("LDAP connection wasn't successful:", err);
         return;
       }
 
@@ -26,13 +29,12 @@ export class LdapConnection {
   addUser(userEmail, userToken) {
     const email = userEmail;
     const userUid = email.substring(0, email.indexOf("@"));
-    console.log(userUid); // Output: john.doe
 
     const searchFilter = `(uid=${userUid})`;
     const searchOptions = {
       filter: searchFilter,
       scope: "sub",
-      attributes: ["dn"],
+      attributes: ['dn', 'cn', 'mail']
     };
 
     this.client.search(this.baseDN, searchOptions, (err, res) => {
@@ -57,22 +59,27 @@ export class LdapConnection {
           // User does not exist, create a new entry
           const newUser = {
             uid: userUid,
-            email: userEmail,
-            token: userToken,
+            mail: userEmail,
+            userPassword: userToken
           };
 
-          this.client.add(
-            `uid=${newUser.uid},${this.baseDN}`,
-            newUser,
-            (err) => {
-              if (err) {
-                console.error(err);
-                return;
-              }
+          const dn = `uid=${newUser.uid},ou=users,dc=example,dc=org`;
+          const entry = {
+            objectClass: ['top', 'person', 'inetOrgPerson'],
+            cn: newUser.uid,
+            sn: newUser.uid,
+            uid: newUser.uid,
+            mail: newUser.mail,
+            userPassword: newUser.userPassword
+          };
 
-              console.log("New user created:", newUser.uid);
+          this.client.add(dn, entry, (err) => {
+            if (err) {
+              console.error('LDAP add error:', err);
+            } else {
+              console.log('LDAP add success');
             }
-          );
+          });
         }
       });
     });
@@ -81,13 +88,12 @@ export class LdapConnection {
   getUser(userEmail) {
     const email = userEmail;
     const userUid = email.substring(0, email.indexOf("@"));
-    console.log(userUid); // Output: john.doe
 
     const searchFilter = `(uid=${userUid})`;
     const searchOptions = {
       filter: searchFilter,
       scope: "sub",
-      attributes: ["dn"],
+      attributes: ['dn', 'cn', 'mail']
     };
 
     this.client.search(this.baseDN, searchOptions, (err, res) => {
@@ -96,20 +102,14 @@ export class LdapConnection {
         return;
       }
 
-      let foundUser = false;
-
-      res.on("searchEntry", (entry) => {
-        foundUser = true;
-        console.log(`User already exists: ${entry.dn}`);
-      });
-
       res.on("error", (err) => {
         console.error(err);
       });
 
       res.on("end", (result) => {
-        return foundUser;
+        return result;
       });
     });
   }
 }
+
