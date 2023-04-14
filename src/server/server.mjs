@@ -104,13 +104,14 @@ app.post("/api/user", (req, res) => {
                 email: email,
                 token: userToken,
                 time: new Date().getTime(),
+                issued: false,
               });
             }
           });
 
           sendVerificationEmail(
             email,
-            `http://localhost:4000/api/verification?token=${userToken}`
+            `http://localhost:4000/api/verification/download?token=${userToken}`
           );
 
           // send the response back to the client
@@ -133,20 +134,6 @@ app.post("/api/user", (req, res) => {
     });
 });
 
-app.get("/api/verification", (req, res) => {
-  // console.log(req.url);
-  const parsedUrl = url.parse(req.url);
-
-  //console.log(parsedUrl.query);
-  const queryParam = querystring.parse(parsedUrl.query);
-
-  console.log("Token value:", queryParam.token);
-
-  //mongoConnection.getUser()
-
-  res.end();
-});
-
 app.get("/api/verification/download", (req, res) => {
   console.log("Got download request");
   // console.log(req.url);
@@ -157,8 +144,6 @@ app.get("/api/verification/download", (req, res) => {
 
   console.log("Token value:", queryParam.token);
 
-  //mongoConnection.getUser();
-
   const filePath = path.join(config.certPath, config.certName);
   console.log(filePath);
   const stat = fs.statSync(filePath);
@@ -167,7 +152,7 @@ app.get("/api/verification/download", (req, res) => {
   res.setHeader("Content-Type", "application/octet-stream");
   res.setHeader(
     "Content-Disposition",
-    "attachment; filename=filename.extension"
+    `attachment; filename=${config.certName}`
   );
 
   const readStream = fs.createReadStream(filePath);

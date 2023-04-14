@@ -26,8 +26,8 @@ function SignResultForm() {
   return (
     <div>
       <h2>{variable}</h2>
-      <Link onClick={handleDownloadClick}>Загрузить сертификат</Link>
-      <br/>
+      {/* <Link onClick={handleDownloadClick}>Загрузить сертификат</Link> */}
+      {/* <br/> */}
       <Link to="/">Вернуться на предыдущую страницу</Link>
     </div>
   );
