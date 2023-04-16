@@ -6,9 +6,10 @@ export function runScript() {
 
   // Replace the values with your server and key details
   const server = {
-    host: config.certificateAuthorityIPAddress,
-    username: config.certificateAuthorityUserName,
-    privateKey: config.pathToRSAKey,
+    host: config.certifcateAuthority.IPAddress,
+    username: config.certifcateAuthority.UserName,
+    privateKey: config.certifcateAuthority.pathToRSAKey,
+    pathToScript: config.certifcateAuthority.pathToScript,
   };
 
   // Replace the path and filename with your Bash script details
@@ -17,7 +18,7 @@ export function runScript() {
     `${server.privateKey}`,
     `${server.username}@${server.host}`,
     "bash",
-    config.pathToScript,
+    server.pathToScript,
   ]);
 
   script.stdout.on("data", (data) => {

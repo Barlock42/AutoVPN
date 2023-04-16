@@ -29,9 +29,9 @@ const database = getDatabase(firebaseApp);
 
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0"; // disables the SSL/TLS certificate verification for all HTTPS requests
 const ses = new SES({
-  accessKeyId: config.accessKeyId,
-  secretAccessKey: config.secretAccessKey,
-  region: config.region, // replace with your preferred region
+  accessKeyId: config.aws.accessKeyId,
+  secretAccessKey: config.aws.secretAccessKey,
+  region: config.aws.region, // replace with your preferred region
 });
 
 // runScript(); // run script on serverSide to get a certificate
@@ -144,7 +144,7 @@ app.get("/api/verification/download", (req, res) => {
 
   console.log("Token value:", queryParam.token);
 
-  const filePath = path.join(config.certPath, config.certName);
+  const filePath = path.join(config.certificate.path, config.certificate.name);
   console.log(filePath);
   const stat = fs.statSync(filePath);
 
@@ -152,7 +152,7 @@ app.get("/api/verification/download", (req, res) => {
   res.setHeader("Content-Type", "application/octet-stream");
   res.setHeader(
     "Content-Disposition",
-    `attachment; filename=${config.certName}`
+    `attachment; filename=${config.certificate.name}`
   );
 
   const readStream = fs.createReadStream(filePath);

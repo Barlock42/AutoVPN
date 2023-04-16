@@ -4,7 +4,7 @@ import { config } from "./config.mjs";
 
 export function bitrixRequest() {
   return axios
-    .get(config.bitixAddress, {
+    .get(config.bitrixAddress, {
       params: {
         filter: { ACTIVE: "1" },
         // add any other parameters required by the API method
