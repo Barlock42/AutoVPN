@@ -183,41 +183,48 @@ app.get("/api/verification/download", (req, res) => {
   const queryParam = querystring.parse(parsedUrl.query);
 
   // console.log("Token value:", queryParam.token);
-  // Check if token exists
-  const usersRef = db.ref("users");
-  // Access Firebase Realtime Database
-  usersRef
-    .orderByChild("token")
-    .equalTo(queryParam.token)
-    .once("value")
-    .then((snapshot) => {
-      if (snapshot.exists()) {
-        // console.log(`Element with token ${queryParam.token} exists.`);
-        const filePath = path.join(
-          config.certificate.path,
-          config.certificate.name
-        );
-        // console.log(filePath);
-        const stat = fs.statSync(filePath);
 
-        res.setHeader("Content-Length", stat.size);
-        res.setHeader("Content-Type", "application/octet-stream");
-        res.setHeader(
-          "Content-Disposition",
-          `attachment; filename=${config.certificate.name}`
-        );
+  if (!!queryParam.token) {
+    // The token is not null or undefined
+    // Check if token exists
+    const usersRef = db.ref("users");
+    // Access Firebase Realtime Database
+    usersRef
+      .orderByChild("token")
+      .equalTo(queryParam.token)
+      .once("value")
+      .then((snapshot) => {
+        if (snapshot.exists()) {
+          // console.log(`Element with token ${queryParam.token} exists.`);
+          const filePath = path.join(
+            config.certificate.path,
+            config.certificate.name
+          );
+          // console.log(filePath);
+          const stat = fs.statSync(filePath);
 
-        const readStream = fs.createReadStream(filePath);
-        readStream.pipe(res);
-      } else {
-        // console.log("Trying to redirect");
-        res.redirect(
-          `http://localhost:3000/result?variable=${JSON.stringify(
-            "Токен недействителен."
-          )}`
-        );
-      }
-    });
+          res.setHeader("Content-Length", stat.size);
+          res.setHeader("Content-Type", "application/octet-stream");
+          res.setHeader(
+            "Content-Disposition",
+            `attachment; filename=${config.certificate.name}`
+          );
+
+          const readStream = fs.createReadStream(filePath);
+          readStream.pipe(res);
+        } else {
+          // console.log("Trying to redirect");
+          res.redirect(
+            `http://localhost:3000/result?variable=${JSON.stringify(
+              "Токен недействителен."
+            )}`
+          );
+        }
+      });
+  } else {
+    // The token is null or undefined
+    res.status(400).send("Token not provided");
+  }
 });
 
 const PORT = 4000;
