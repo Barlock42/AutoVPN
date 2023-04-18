@@ -59,9 +59,9 @@ const sendVerificationEmail = async (email, verificationLink) => {
 
   ses.sendEmail(params, (err, data) => {
     if (err) {
-      console.error(`Error sending verification email: ${err.message}`);
+      // console.error(`Error sending verification email: ${err.message}`);
     } else {
-      console.log(`Verification email sent to ${email}`);
+      // console.log(`Verification email sent to ${email}`);
     }
   });
 };
@@ -101,7 +101,7 @@ app.post("/api/user", (req, res) => {
           // eslint-disable-next-line no-loop-func
           .then((snapshot) => {
             if (snapshot.exists()) {
-              console.log(`Element with email ${email} exists.`);
+              // console.log(`Element with email ${email} exists.`);
               snapshot.forEach((childSnapshot) => {
                 const userKey = childSnapshot.key;
                 const user = childSnapshot.val();
@@ -117,9 +117,9 @@ app.post("/api/user", (req, res) => {
                     `http://localhost:4000/api/verification/download?token=${user.token}`
                   );
                 } else {
-                  console.log(
-                    `User with email ${email} has not been issued a token.`
-                  );
+                  // console.log(
+                  //   `User with email ${email} has not been issued a token.`
+                  // );
 
                   // Update the 'issued' field in the existing record
                   usersRef.child(userKey).update({
@@ -135,7 +135,7 @@ app.post("/api/user", (req, res) => {
                 }
               });
             } else {
-              console.log(`Element with email ${email} does not exists.`);
+              // console.log(`Element with email ${email} does not exists.`);
               // User does not exist, add them to the database
               push(usersRef, {
                 email: email,
@@ -153,7 +153,7 @@ app.post("/api/user", (req, res) => {
             }
           })
           .catch((error) => {
-            console.log("Error: ", error);
+            // console.log("Error: ", error);
           });
 
         // send the response back to the client
@@ -175,28 +175,49 @@ app.post("/api/user", (req, res) => {
 });
 
 app.get("/api/verification/download", (req, res) => {
-  console.log("Got download request");
+  // console.log("Got download request");
   // console.log(req.url);
   const parsedUrl = url.parse(req.url);
 
   //console.log(parsedUrl.query);
   const queryParam = querystring.parse(parsedUrl.query);
 
-  console.log("Token value:", queryParam.token);
+  // console.log("Token value:", queryParam.token);
+  // Check if token exists
+  const usersRef = db.ref("users");
+  // Access Firebase Realtime Database
+  usersRef
+    .orderByChild("token")
+    .equalTo(queryParam.token)
+    .once("value")
+    .then((snapshot) => {
+      if (snapshot.exists()) {
+        // console.log(`Element with token ${queryParam.token} exists.`);
+        const filePath = path.join(
+          config.certificate.path,
+          config.certificate.name
+        );
+        // console.log(filePath);
+        const stat = fs.statSync(filePath);
 
-  const filePath = path.join(config.certificate.path, config.certificate.name);
-  console.log(filePath);
-  const stat = fs.statSync(filePath);
+        res.setHeader("Content-Length", stat.size);
+        res.setHeader("Content-Type", "application/octet-stream");
+        res.setHeader(
+          "Content-Disposition",
+          `attachment; filename=${config.certificate.name}`
+        );
 
-  res.setHeader("Content-Length", stat.size);
-  res.setHeader("Content-Type", "application/octet-stream");
-  res.setHeader(
-    "Content-Disposition",
-    `attachment; filename=${config.certificate.name}`
-  );
-
-  const readStream = fs.createReadStream(filePath);
-  readStream.pipe(res);
+        const readStream = fs.createReadStream(filePath);
+        readStream.pipe(res);
+      } else {
+        // console.log("Trying to redirect");
+        res.redirect(
+          `http://localhost:3000/result?variable=${JSON.stringify(
+            "Токен недействителен."
+          )}`
+        );
+      }
+    });
 });
 
 const PORT = 4000;
