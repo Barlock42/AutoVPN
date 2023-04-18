@@ -12,6 +12,7 @@ src/data
 # production
 /build
 src/server/config.mjs
+src/server/serviceAccount.mjs
 src/LDAPserver
 
 # misc

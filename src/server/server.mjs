@@ -15,17 +15,19 @@ import express from "express";
 import bodyParser from "body-parser";
 
 // Firebase connection
-import { initializeApp } from "firebase/app";
 import { getDatabase, ref, push, onValue } from "firebase/database";
+import admin from "firebase-admin";
+import { serviceAccount } from "./serviceAccount.mjs";
 
 import cors from "cors";
 import { SES } from "@aws-sdk/client-ses";
 
-// Initialize Firebase
-// Initialize Firebase
-const firebaseConfig = config.firebaseConfig;
-const firebaseApp = initializeApp(firebaseConfig);
-const database = getDatabase(firebaseApp);
+admin.initializeApp({
+  credential: admin.credential.cert(serviceAccount),
+  databaseURL: config.firebaseConfig.databaseURL,
+});
+
+const db = admin.database();
 
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0"; // disables the SSL/TLS certificate verification for all HTTPS requests
 const ses = new SES({
@@ -33,8 +35,6 @@ const ses = new SES({
   secretAccessKey: config.aws.secretAccessKey,
   region: config.aws.region, // replace with your preferred region
 });
-
-// runScript(); // run script on serverSide to get a certificate
 
 const sendVerificationEmail = async (email, verificationLink) => {
   const params = {
@@ -57,14 +57,13 @@ const sendVerificationEmail = async (email, verificationLink) => {
     Source: config.email, // replace with your verified email address
   };
 
-  try {
-    await ses.sendEmail(params).promise();
-    console.log(`Verification email sent to ${email}`);
-  } catch (err) {
-    console.error(
-      `Error sending verification email to ${email} from ${config.email}: ${err.message}`
-    );
-  }
+  ses.sendEmail(params, (err, data) => {
+    if (err) {
+      console.error(`Error sending verification email: ${err.message}`);
+    } else {
+      console.log(`Verification email sent to ${email}`);
+    }
+  });
 };
 
 let userToken = generateToken();
@@ -87,18 +86,56 @@ app.post("/api/user", (req, res) => {
       // console.log(emails.length);
       let emailFound = false;
 
-      // Loop through all emails
-      for (let i = 0; i < emails.length; i++) {
-        if (emails[i] === email) {
-          emailFound = true;
-          // Check if all data matches
-          console.log(`Email ${email} exists and active in Bitrix.`);
+      // Look through all emails
+      if (emails.includes(email)) {
+        emailFound = true;
+        // console.log(`Email ${email} exists and active in Bitrix.`);
 
-          // Check if user exists
-          const usersRef = ref(database, "users");
-          // Access Firebase Realtime Database
-          onValue(ref(database, "users"), (snapshot) => {
-            if (!snapshot.exists()) {
+        // Check if user exists
+        const usersRef = db.ref("users");
+        // Access Firebase Realtime Database
+        usersRef
+          .orderByChild("email")
+          .equalTo(email)
+          .once("value")
+          // eslint-disable-next-line no-loop-func
+          .then((snapshot) => {
+            if (snapshot.exists()) {
+              console.log(`Element with email ${email} exists.`);
+              snapshot.forEach((childSnapshot) => {
+                const userKey = childSnapshot.key;
+                const user = childSnapshot.val();
+                // console.log(user);
+                if (user.issued) {
+                  // console.log(
+                  //   `User with email ${email} has been issued a token.`
+                  // );
+
+                  // console.log("Token value:", user.token);
+                  sendVerificationEmail(
+                    email,
+                    `http://localhost:4000/api/verification/download?token=${user.token}`
+                  );
+                } else {
+                  console.log(
+                    `User with email ${email} has not been issued a token.`
+                  );
+
+                  // Update the 'issued' field in the existing record
+                  usersRef.child(userKey).update({
+                    issued: true,
+                  });
+
+                  runScript(); // run script on serverSide to get a certificate
+                  // console.log("Token value:", userToken);
+                  sendVerificationEmail(
+                    email,
+                    `http://localhost:4000/api/verification/download?token=${userToken}`
+                  );
+                }
+              });
+            } else {
+              console.log(`Element with email ${email} does not exists.`);
               // User does not exist, add them to the database
               push(usersRef, {
                 email: email,
@@ -106,20 +143,23 @@ app.post("/api/user", (req, res) => {
                 time: new Date().getTime(),
                 issued: false,
               });
+
+              runScript(); // run script on serverSide to get a certificate
+              // console.log("Token value:", userToken);
+              sendVerificationEmail(
+                email,
+                `http://localhost:4000/api/verification/download?token=${userToken}`
+              );
             }
+          })
+          .catch((error) => {
+            console.log("Error: ", error);
           });
 
-          sendVerificationEmail(
-            email,
-            `http://localhost:4000/api/verification/download?token=${userToken}`
-          );
-
-          // send the response back to the client
-          res.json({
-            message: "На ваш адрес отправлено письмо для подтверждения почты.",
-          });
-          break; // Exit loop if data is found
-        }
+        // send the response back to the client
+        res.json({
+          message: "На ваш адрес отправлено письмо для подтверждения почты.",
+        });
       }
 
       if (!emailFound) {

@@ -22,7 +22,6 @@ function SignResultForm() {
       });
   };
 
-
   return (
     <div>
       <h2>{variable}</h2>
