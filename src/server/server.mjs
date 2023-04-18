@@ -214,16 +214,17 @@ app.get("/api/verification/download", (req, res) => {
           readStream.pipe(res);
         } else {
           // console.log("Trying to redirect");
-          res.redirect(
-            `http://localhost:3000/result?variable=${JSON.stringify(
-              "Токен недействителен."
-            )}`
-          );
+          res.status(400).send("Токен недействителен.");
+          // res.redirect(
+          //   `http://localhost:3000/result?variable=${JSON.stringify(
+          //     "Токен недействителен."
+          //   )}`
+          // );
         }
       });
   } else {
     // The token is null or undefined
-    res.status(400).send("Token not provided");
+    res.status(400).send("Токен не предоставлен.");
   }
 });
 
