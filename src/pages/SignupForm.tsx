@@ -19,7 +19,7 @@ function SignupForm() {
     const result = await response.json();
     // console.log(result.message);
     // After submitting the form, redirect to the result page
-    window.location.href = `/result?variable=${JSON.stringify(result.message)}`;
+    // window.location.href = `/result?variable=${JSON.stringify(result.message)}`;
   };
 
   const handleChange = (event) => {

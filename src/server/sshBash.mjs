@@ -1,9 +1,6 @@
 import { spawn } from "child_process";
 // import project config
 import { config } from "./config.mjs";
-// import sftp client
-import { Client } from 'ssh2';
-import fs from 'fs';
 
 // Replace the values with your server and key details
 const server = {
@@ -13,14 +10,7 @@ const server = {
   pathToScript: config.certifcateAuthority.pathToScript,
 };
 
-const sshConfig = {
-  host: server.host,
-  port: '22',
-  username: server.username,
-  privateKey: server.privateKey
-};
-
-export function runScript() {
+export function runScript(callback) {
   // Replace the path and filename with your Bash script details
   const script = spawn("ssh", [
     "-i",
@@ -40,26 +30,33 @@ export function runScript() {
 
   script.on("close", (code) => {
     // console.log(`child process exited with code ${code}`);
+    callback(); // Call the callback function after the script has finished
   });
 }
 
 export function getCert() {
-  console.log('getCert')
-  const conn = new Client();
-  conn.on('ready', function() {
-    console.log('Client :: ready');
-    conn.sftp(function(err, sftp) {
-      if (err) throw err;
-      const remoteFilePath = config.certifcateAuthority.filePath + config.certifcateAuthority.fileName;
-      const localFilePath = config.server.certsPath + config.certifcateAuthority.fileName;
-      const readStream = sftp.createReadStream(remoteFilePath);
-      const writeStream = fs.createWriteStream(localFilePath);
-      readStream.pipe(writeStream);
-      readStream.on('close', function() {
-        console.log('File transfer completed');
-        conn.end();
-      });
-    });
-  }).connect(sshConfig);
+  const script = spawn("scp", [
+    "-i",
+    `${server.privateKey}`,
+    `${server.username}@${server.host}:${
+      config.certifcateAuthority.filePath + config.certifcateAuthority.fileName
+    }`,
+    config.server.certsPath,
+  ]);
 
+  script.stdout.on("data", (data) => {
+    console.log(`stdout: ${data}`);
+  });
+
+  script.stderr.on("data", (data) => {
+    console.error(`stderr: ${data}`);
+  });
+
+  script.on("close", (code) => {
+    if (code === 0) {
+      console.log("Certificate downloaded successfully");
+    } else {
+      console.error(`Certificate download failed with code ${code}`);
+    }
+  });
 }

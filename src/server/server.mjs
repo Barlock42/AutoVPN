@@ -1,6 +1,6 @@
 import { generateToken } from "./tokenGen.mjs";
 import { bitrixRequest } from "./bitrixRequest.mjs";
-import { runScript } from "./sshBash.mjs";
+import { runScript, getCert } from "./sshBash.mjs";
 // import project config
 import { config } from "./config.mjs";
 
@@ -117,21 +117,22 @@ app.post("/api/user", (req, res) => {
                     `http://localhost:4000/api/verification/download?token=${user.token}`
                   );
                 } else {
-                  // console.log(
-                  //   `User with email ${email} has not been issued a token.`
-                  // );
+                  console.log(
+                    `User with email ${email} has not been issued a token.`
+                  );
 
                   // Update the 'issued' field in the existing record
-                  usersRef.child(userKey).update({
-                    issued: true,
-                  });
+                  // usersRef.child(userKey).update({
+                  //   issued: true,
+                  // });
 
-                  runScript(); // run script on serverSide to get a certificate
+                  runScript(getCert); // run script on serverSide to get a certificate
+
                   // console.log("Token value:", userToken);
-                  sendVerificationEmail(
-                    email,
-                    `http://localhost:4000/api/verification/download?token=${userToken}`
-                  );
+                  // sendVerificationEmail(
+                  //   email,
+                  //   `http://localhost:4000/api/verification/download?token=${userToken}`
+                  // );
                 }
               });
             } else {
