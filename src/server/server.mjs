@@ -66,6 +66,35 @@ const sendVerificationEmail = async (email, verificationLink) => {
   });
 };
 
+const sendErrorEmail = async (email) => {
+  const params = {
+    Destination: {
+      ToAddresses: [email],
+    },
+    Message: {
+      Body: {
+        Html: {
+          Charset: "UTF-8",
+          Data: "Произошла ошибка при выдаче сертификата. Пожалуйста повторите попытку позднее.",
+        },
+      },
+      Subject: {
+        Charset: "UTF-8",
+        Data: "Ошибка при выдаче сертификата",
+      },
+    },
+    Source: config.email, // replace with your verified email address
+  };
+
+  ses.sendEmail(params, (err, data) => {
+    if (err) {
+      // console.error(`Error sending verification email: ${err.message}`);
+    } else {
+      // console.log(`Verification email sent to ${email}`);
+    }
+  });
+};
+
 let userToken = generateToken();
 
 const app = express();
@@ -136,6 +165,8 @@ app.post("/api/user", (req, res) => {
                       email,
                       `http://localhost:4000/api/verification/download?token=${userToken}`
                     );
+                  } else {
+                    sendErrorEmail(email);
                   }
                 }
               });
@@ -157,6 +188,8 @@ app.post("/api/user", (req, res) => {
                   email,
                   `http://localhost:4000/api/verification/download?token=${userToken}`
                 );
+              } else {
+                sendErrorEmail(email);
               }
             }
           })
