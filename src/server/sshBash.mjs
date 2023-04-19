@@ -28,11 +28,11 @@ export function runScript(callback) {
     console.error(`stderr: ${data}`);
   });
 
-  script.on("close", (code) => {
+  script.on("close", async (code) => {
     if (code === 0) {
       // console.log("Script ran successfully");
       // Call the callback function after the script has finished
-      if (callback()) return true;
+      if (await callback()) return true;
       else return false;
     } else {
       // console.error(`Script failed with code ${code}`);
@@ -61,10 +61,10 @@ export function getCert() {
 
   script.on("close", (code) => {
     if (code === 0) {
-      // console.log("Certificate downloaded successfully");
+      console.log("Certificate downloaded successfully");
       return true;
     } else {
-      // console.error(`Certificate download failed with code ${code}`);
+      console.error(`Certificate download failed with code ${code}`);
       return false;
     }
   });

@@ -125,6 +125,7 @@ app.post("/api/user", (req, res) => {
                   // run script on serverSide to get a certificate
                   if (runScript(getCert)) {
                     scriptSuccess = true;
+                    console.log("Chnging issued status.");
                     // Update the 'issued' field in the existing record
                     usersRef.child(userKey).update({
                       issued: true,
@@ -164,15 +165,9 @@ app.post("/api/user", (req, res) => {
           });
 
         // send the response back to the client
-        if (scriptSuccess) {
-          res.json({
-            message: "На ваш адрес отправлено письмо для подтверждения почты.",
-          });
-        } else {
-          res.json({
-            message: "произошла ошибка при выдаче сертификата",
-          });
-        }
+        res.json({
+          message: "На ваш адрес отправлено письмо для подтверждения почты.",
+        });
       }
 
       if (!emailFound) {
