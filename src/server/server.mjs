@@ -114,7 +114,6 @@ app.post("/api/user", (req, res) => {
       const emails = json.map((item) => item.EMAIL);
       // console.log(emails.length);
       let emailFound = false;
-      let scriptSuccess = false;
 
       // Look through all emails
       if (emails.includes(email)) {
@@ -132,7 +131,7 @@ app.post("/api/user", (req, res) => {
           .then((snapshot) => {
             if (snapshot.exists()) {
               // console.log(`Element with email ${email} exists.`);
-              snapshot.forEach((childSnapshot) => {
+              snapshot.forEach(async (childSnapshot) => {
                 const userKey = childSnapshot.key;
                 const user = childSnapshot.val();
                 // console.log(user);
@@ -140,7 +139,6 @@ app.post("/api/user", (req, res) => {
                   // console.log(
                   //   `User with email ${email} has been issued a token.`
                   // );
-                  scriptSuccess = true;
                   // console.log("Token value:", user.token);
                   sendVerificationEmail(
                     email,
@@ -152,10 +150,9 @@ app.post("/api/user", (req, res) => {
                   );
 
                   // run script on serverSide to get a certificate
-                  if (runScript(getCert)) {
-                    scriptSuccess = true;
-                    console.log("Changing issued status.");
+                  if (await runScript(getCert)) {
                     // Update the 'issued' field in the existing record
+                    // console.log("Changing issued status.");
                     usersRef.child(userKey).update({
                       issued: true,
                     });
@@ -163,7 +160,7 @@ app.post("/api/user", (req, res) => {
                     // console.log("Token value:", userToken);
                     sendVerificationEmail(
                       email,
-                      `http://localhost:4000/api/verification/download?token=${userToken}`
+                      `http://localhost:4000/api/verification/download?token=${user.token}`
                     );
                   } else {
                     sendErrorEmail(email);
@@ -182,7 +179,6 @@ app.post("/api/user", (req, res) => {
 
               // run script on serverSide to get a certificate
               if (runScript(getCert)) {
-                scriptSuccess = true;
                 // console.log("Token value:", userToken);
                 sendVerificationEmail(
                   email,

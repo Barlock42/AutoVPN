@@ -10,62 +10,67 @@ const server = {
   pathToScript: config.certifcateAuthority.pathToScript,
 };
 
-export function runScript(callback) {
-  // Replace the path and filename with your Bash script details
-  const script = spawn("ssh", [
-    "-i",
-    `${server.privateKey}`,
-    `${server.username}@${server.host}`,
-    "bash",
-    server.pathToScript,
-  ]);
+export async function runScript(callback){
+  return new Promise((resolve, reject) => {
+    // Replace the path and filename with your Bash script details
+    const script = spawn("ssh", [
+      "-i",
+      `${server.privateKey}`,
+      `${server.username}@${server.host}`,
+      "bash",
+      server.pathToScript,
+    ]);
 
-  script.stdout.on("data", (data) => {
-    console.log(`stdout: ${data}`);
-  });
+    script.stdout.on("data", (data) => {
+      console.log(`stdout: ${data}`);
+    });
 
-  script.stderr.on("data", (data) => {
-    console.error(`stderr: ${data}`);
-  });
+    script.stderr.on("data", (data) => {
+      console.error(`stderr: ${data}`);
+    });
 
-  script.on("close", async (code) => {
-    if (code === 0) {
-      // console.log("Script ran successfully");
-      // Call the callback function after the script has finished
-      if (await callback()) return true;
-      else return false;
-    } else {
-      // console.error(`Script failed with code ${code}`);
-      return false;
-    }
+    script.on("close", async (code) => {
+      if (code === 0) {
+        // console.log("Script ran successfully");
+        // Call the callback function after the script has finished
+        if (await callback()) resolve(true);
+        else resolve(false);
+      } else {
+        // console.error(`Script failed with code ${code}`);
+        resolve(false);
+      }
+    });
   });
 }
 
-export function getCert() {
-  const script = spawn("scp", [
-    "-i",
-    `${server.privateKey}`,
-    `${server.username}@${server.host}:${
-      config.certifcateAuthority.filePath + config.certifcateAuthority.fileName
-    }`,
-    config.server.certsPath,
-  ]);
+export async function getCert() {
+  return new Promise((resolve, reject) => {
+    const script = spawn("scp", [
+      "-i",
+      `${server.privateKey}`,
+      `${server.username}@${server.host}:${
+        config.certifcateAuthority.filePath +
+        config.certifcateAuthority.fileName
+      }`,
+      config.server.certsPath,
+    ]);
 
-  script.stdout.on("data", (data) => {
-    console.log(`stdout: ${data}`);
-  });
+    script.stdout.on("data", (data) => {
+      console.log(`stdout: ${data}`);
+    });
 
-  script.stderr.on("data", (data) => {
-    console.error(`stderr: ${data}`);
-  });
+    script.stderr.on("data", (data) => {
+      console.error(`stderr: ${data}`);
+    });
 
-  script.on("close", (code) => {
-    if (code === 0) {
-      console.log("Certificate downloaded successfully");
-      return true;
-    } else {
-      console.error(`Certificate download failed with code ${code}`);
-      return false;
-    }
+    script.on("close", (code) => {
+      if (code === 0) {
+        console.log("Certificate downloaded successfully");
+        resolve(true);
+      } else {
+        console.error(`Certificate download failed with code ${code}`);
+        resolve(false);
+      }
+    });
   });
 }
