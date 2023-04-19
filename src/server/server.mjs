@@ -125,7 +125,7 @@ app.post("/api/user", (req, res) => {
                   // run script on serverSide to get a certificate
                   if (runScript(getCert)) {
                     scriptSuccess = true;
-                    console.log("Chnging issued status.");
+                    console.log("Changing issued status.");
                     // Update the 'issued' field in the existing record
                     usersRef.child(userKey).update({
                       issued: true,
