@@ -85,6 +85,7 @@ app.post("/api/user", (req, res) => {
       const emails = json.map((item) => item.EMAIL);
       // console.log(emails.length);
       let emailFound = false;
+      let scriptSuccess = false;
 
       // Look through all emails
       if (emails.includes(email)) {
@@ -110,7 +111,7 @@ app.post("/api/user", (req, res) => {
                   // console.log(
                   //   `User with email ${email} has been issued a token.`
                   // );
-
+                  scriptSuccess = true;
                   // console.log("Token value:", user.token);
                   sendVerificationEmail(
                     email,
@@ -121,18 +122,20 @@ app.post("/api/user", (req, res) => {
                     `User with email ${email} has not been issued a token.`
                   );
 
-                  // Update the 'issued' field in the existing record
-                  // usersRef.child(userKey).update({
-                  //   issued: true,
-                  // });
+                  // run script on serverSide to get a certificate
+                  if (runScript(getCert)) {
+                    scriptSuccess = true;
+                    // Update the 'issued' field in the existing record
+                    usersRef.child(userKey).update({
+                      issued: true,
+                    });
 
-                  runScript(getCert); // run script on serverSide to get a certificate
-
-                  // console.log("Token value:", userToken);
-                  // sendVerificationEmail(
-                  //   email,
-                  //   `http://localhost:4000/api/verification/download?token=${userToken}`
-                  // );
+                    // console.log("Token value:", userToken);
+                    sendVerificationEmail(
+                      email,
+                      `http://localhost:4000/api/verification/download?token=${userToken}`
+                    );
+                  }
                 }
               });
             } else {
@@ -145,12 +148,15 @@ app.post("/api/user", (req, res) => {
                 issued: false,
               });
 
-              runScript(); // run script on serverSide to get a certificate
-              // console.log("Token value:", userToken);
-              sendVerificationEmail(
-                email,
-                `http://localhost:4000/api/verification/download?token=${userToken}`
-              );
+              // run script on serverSide to get a certificate
+              if (runScript(getCert)) {
+                scriptSuccess = true;
+                // console.log("Token value:", userToken);
+                sendVerificationEmail(
+                  email,
+                  `http://localhost:4000/api/verification/download?token=${userToken}`
+                );
+              }
             }
           })
           .catch((error) => {
@@ -158,9 +164,15 @@ app.post("/api/user", (req, res) => {
           });
 
         // send the response back to the client
-        res.json({
-          message: "На ваш адрес отправлено письмо для подтверждения почты.",
-        });
+        if (scriptSuccess) {
+          res.json({
+            message: "На ваш адрес отправлено письмо для подтверждения почты.",
+          });
+        } else {
+          res.json({
+            message: "произошла ошибка при выдаче сертификата",
+          });
+        }
       }
 
       if (!emailFound) {
