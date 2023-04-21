@@ -10,7 +10,7 @@ const server = {
   pathToScript: config.certifcateAuthority.pathToScript,
 };
 
-export async function runScript(callback){
+export async function runScript(callback) {
   return new Promise((resolve, reject) => {
     // Replace the path and filename with your Bash script details
     const script = spawn("ssh", [
