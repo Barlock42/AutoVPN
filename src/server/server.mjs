@@ -150,7 +150,7 @@ app.post("/api/user", (req, res) => {
                   );
 
                   // run script on serverSide to get a certificate
-                  if (await runScript(getCert)) {
+                  if (await runScript(getCert, email)) {
                     // Update the 'issued' field in the existing record
                     // console.log("Changing issued status.");
                     usersRef.child(userKey).update({
@@ -178,7 +178,7 @@ app.post("/api/user", (req, res) => {
               });
 
               // run script on serverSide to get a certificate
-              if (runScript(getCert)) {
+              if (runScript(getCert, email)) {
                 // console.log("Token value:", userToken);
                 sendVerificationEmail(
                   email,
@@ -232,23 +232,27 @@ app.get("/api/verification/download", (req, res) => {
       .once("value")
       .then((snapshot) => {
         if (snapshot.exists()) {
-          // console.log(`Element with token ${queryParam.token} exists.`);
-          const filePath = path.join(
-            config.certificate.path,
-            config.certificate.name
-          );
-          // console.log(filePath);
-          const stat = fs.statSync(filePath);
+          snapshot.forEach(async (childSnapshot) => {
+            const user = childSnapshot.val();
+            // console.log(`Element with token ${queryParam.token} exists.`);
+            const filePath = path.join(
+              config.certificate.path,
+              user.email + ".ovpn"
+            );
 
-          res.setHeader("Content-Length", stat.size);
-          res.setHeader("Content-Type", "application/octet-stream");
-          res.setHeader(
-            "Content-Disposition",
-            `attachment; filename=${config.certificate.name}`
-          );
+            // console.log(filePath);
+            const stat = fs.statSync(filePath);
 
-          const readStream = fs.createReadStream(filePath);
-          readStream.pipe(res);
+            res.setHeader("Content-Length", stat.size);
+            res.setHeader("Content-Type", "application/octet-stream");
+            res.setHeader(
+              "Content-Disposition",
+              `attachment; filename=${user.email + ".ovpn"}`
+            );
+
+            const readStream = fs.createReadStream(filePath);
+            readStream.pipe(res);
+          });
         } else {
           // console.log("Trying to redirect");
           res.status(400).send("Токен недействителен.");

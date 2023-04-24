@@ -37,7 +37,10 @@ fi
 
 # Generate a new key pair and certificate for the new client
 cd $EASY_RSA_DIR
-echo -ne '\n' | ./easyrsa gen-req $CLIENT_NAME nopass
+if ! echo -ne '\n' | ./easyrsa gen-req "$CLIENT_NAME" nopass; then
+  echo "Failed to generate client key pair and certificate"
+  exit 1
+fi
 cp pki/private/${CLIENT_NAME}.key /home/ubuntu/client-configs/keys/
 
 # Signing the OpenVPN Server’s Certificate Request
@@ -49,15 +52,16 @@ if ! scp -i CertificateAuthority.pem "/home/ubuntu/easy-rsa/pki/reqs/${CLIENT_NA
   exit 1
 fi
 
-#echo "$CERT_AUTH_IP" "${EASY_RSA_DIR}/easyrsa import-req /tmp/${CLIENT_NAME}.req ${CLIENT_NAME}";
+echo ssh -i CertificateAuthority.pem "$CERT_AUTH_IP" "cd ${EASY_RSA_DIR} && ./easyrsa import-req /tmp/${CLIENT_NAME}.req ${CLIENT_NAME}";
 # Import the certificate request into the Easy-RSA directory on the Certificate Authority
-if ! ssh -i CertificateAuthority.pem "$CERT_AUTH_IP" "cd ${EASY_RSA_DIR} && ./easyrsa import-req /tmp/${CLIENT_NAME}.req ${CLIENT_NAME}"; then
+if ! echo "yes" | ssh -i CertificateAuthority.pem "$CERT_AUTH_IP" "cd ${EASY_RSA_DIR} && ./easyrsa import-req /tmp/${CLIENT_NAME}.req ${CLIENT_NAME}"; then
   echo "Failed to import certificate request on Certificate Authority"
   exit 1
 fi
 
+echo ssh -i CertificateAuthority.pem "$CERT_AUTH_IP" "cd ${EASY_RSA_DIR} && ./easyrsa sign-req client ${CLIENT_NAME}";
 # Sign the certificate request on the Certificate Authority
-if ! ssh -i CertificateAuthority.pem "$CERT_AUTH_IP" "cd ${EASY_RSA_DIR} && ./easyrsa sign-req client ${CLIENT_NAME}"; then
+if ! echo "yes" | ssh -i CertificateAuthority.pem "$CERT_AUTH_IP" "cd ${EASY_RSA_DIR} && ./easyrsa sign-req client ${CLIENT_NAME}"; then
   echo "Failed to sign certificate request on Certificate Authority"
   exit 1
 fi

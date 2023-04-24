@@ -10,15 +10,17 @@ const server = {
   pathToScript: config.certifcateAuthority.pathToScript,
 };
 
-export async function runScript(callback) {
+export async function runScript(callback, email) {
   return new Promise((resolve, reject) => {
     // Replace the path and filename with your Bash script details
     const script = spawn("ssh", [
       "-i",
       `${server.privateKey}`,
       `${server.username}@${server.host}`,
+      "sudo",
       "bash",
       server.pathToScript,
+      email
     ]);
 
     script.stdout.on("data", (data) => {
@@ -33,7 +35,7 @@ export async function runScript(callback) {
       if (code === 0) {
         // console.log("Script ran successfully");
         // Call the callback function after the script has finished
-        if (await callback()) resolve(true);
+        if (await callback(email)) resolve(true);
         else resolve(false);
       } else {
         // console.error(`Script failed with code ${code}`);
@@ -43,14 +45,14 @@ export async function runScript(callback) {
   });
 }
 
-export async function getCert() {
+export async function getCert(email) {
   return new Promise((resolve, reject) => {
     const script = spawn("scp", [
       "-i",
       `${server.privateKey}`,
       `${server.username}@${server.host}:${
         config.certifcateAuthority.filePath +
-        config.certifcateAuthority.fileName
+        email + ".ovpn"
       }`,
       config.server.certsPath,
     ]);
