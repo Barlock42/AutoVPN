@@ -11,6 +11,7 @@ src/data
 
 # production
 /build
+src/scripts/autoCert.cfg
 src/server/config.mjs
 src/server/serviceAccount.mjs
 src/LDAPserver
